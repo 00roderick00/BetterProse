@@ -26,6 +26,8 @@ autonomous high-stakes grader.
 ## Architecture
 
 - `src/betterprose/cli.py`: Typer command surface.
+- `src/betterprose/mcp_server.py`: MCP server wiring and tool metadata.
+- `src/betterprose/mcp_tools.py`: transport-independent MCP tool logic.
 - `src/betterprose/models.py`: validated report and rubric schemas.
 - `src/betterprose/document.py`: paragraph and sentence mapping.
 - `src/betterprose/rubric.py`: profile loading and validation.
@@ -58,6 +60,9 @@ test for every fact-lock or report-schema bug.
 - Keep provider-specific logic behind the provider protocol.
 - The local provider must remain usable without network access or credentials.
 - Tests must not call paid or external APIs.
+- MCP coverage must include the SDK's in-memory transport. A local stdio
+  subprocess smoke test is also permitted. Tests must not require a configured
+  AI client or call paid or external APIs.
 - New automated diagnostics must explain the observed passage and reader
   effect. They may ask the writer to reconsider a choice; they may not declare
   authorship.

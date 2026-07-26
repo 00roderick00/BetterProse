@@ -18,6 +18,8 @@ proof of authorship or writing quality.
   audit; the original is never overwritten.
 - `betterprose compare`: compare drafts with an auditable unified diff.
 - `betterprose profiles`: inspect the installed rubric profiles.
+- `betterprose-mcp`: expose BetterProse as structured tools to MCP-compatible
+  AI assistants.
 - Markdown, HTML, and JSON assessment reports.
 - Academic argument, professional prose, and narrative nonfiction profiles.
 - An offline provider for private, deterministic diagnostics.
@@ -48,6 +50,84 @@ betterprose assess examples/sample_essay.md --provider openai
 
 The default model may be changed with `BETTERPROSE_MODEL`. Every report records
 the provider and model that produced it.
+
+## Use BetterProse from an AI assistant
+
+BetterProse includes a local Model Context Protocol (MCP) server. Once it is
+connected to an MCP-compatible AI, you can paste prose into that AI and say:
+
+> Assess this with BetterProse.
+
+The AI should call the canonical `assess_prose` tool rather than imitate the
+rubric itself.
+
+First install BetterProse:
+
+```bash
+git clone https://github.com/00roderick00/BetterProse.git
+cd BetterProse
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install -e ".[openai]"
+```
+
+Or let an MCP-compatible AI install and run the current draft branch directly
+from GitHub with `uvx`:
+
+```json
+{
+  "mcpServers": {
+    "betterprose": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/00roderick00/BetterProse.git@agent/prosebench-mvp",
+        "betterprose-mcp"
+      ]
+    }
+  }
+}
+```
+
+That configuration needs `uv`/`uvx` installed on the same computer as the AI
+application. While pull request #1 is a draft, the Git URL explicitly selects
+its branch. After that pull request is merged, remove
+`@agent/prosebench-mvp` to install from the repository's default branch.
+
+For a previously cloned copy, add this local stdio server instead:
+
+```json
+{
+  "mcpServers": {
+    "betterprose": {
+      "command": "/absolute/path/to/BetterProse/.venv/bin/betterprose-mcp",
+      "args": []
+    }
+  }
+}
+```
+
+Replace the command with the real absolute path on your computer. Restart or
+refresh the AI application after changing its MCP configuration.
+
+The server publishes:
+
+- `assess_prose`: a complete 12-criterion assessment with evidence and scores.
+- `list_betterprose_profiles`: the installed genre profiles and weights.
+- `assess_with_betterprose`: a reusable MCP prompt for clients that expose
+  server prompts.
+
+The tool's default `provider="auto"` uses the OpenAI provider when
+`OPENAI_API_KEY` is available to the server process and otherwise uses the
+low-confidence offline provider. You can request `provider="local"` or
+`provider="openai"` explicitly.
+
+See [docs/mcp.md](docs/mcp.md) for configuration, security boundaries, and
+testing. [AI_USAGE.md](AI_USAGE.md) provides portable instructions for AI
+systems that can read a repository but cannot connect to MCP.
+
+An AI system must support tools or MCP to run the canonical engine. Merely
+pointing an AI at the GitHub page does not install or execute BetterProse.
 
 ## Assess
 
@@ -145,6 +225,7 @@ python -m pip install -e ".[dev]"
 pytest
 ruff check .
 python -m betterprose --help
+pytest tests/test_mcp_server.py
 ```
 
 See [docs/methodology.md](docs/methodology.md) for the assessment model and
