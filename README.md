@@ -58,21 +58,23 @@ connected to an MCP-compatible AI, you can paste prose into that AI and say:
 
 > Assess this with BetterProse.
 
-The AI should call the canonical `assess_prose` tool rather than imitate the
-rubric itself.
+By default, the AI calls `prepare_assessment`, evaluates the returned rubric
+with the model already hosting the conversation, and submits its findings to
+`finalize_assessment`. BetterProse validates the quoted evidence and calculates
+the score. This host-assisted workflow needs no separate model API key.
 
-First install BetterProse:
+Choose either installation method below. To use a local clone:
 
 ```bash
 git clone https://github.com/00roderick00/BetterProse.git
 cd BetterProse
 python -m venv .venv
 source .venv/bin/activate
-python -m pip install -e ".[openai]"
+python -m pip install -e .
 ```
 
-Or let an MCP-compatible AI install and run the current draft branch directly
-from GitHub with `uvx`:
+Alternatively, let an MCP-compatible AI install and run the current draft
+branch directly from GitHub with `uvx`:
 
 ```json
 {
@@ -112,15 +114,23 @@ refresh the AI application after changing its MCP configuration.
 
 The server publishes:
 
-- `assess_prose`: a complete 12-criterion assessment with evidence and scores.
+- `prepare_assessment`: return the rubric and numbered prose for the current
+  host AI to evaluate without a separate model call.
+- `finalize_assessment`: validate exact quoted evidence, enforce criterion
+  coverage, calculate weighted scores, and return the canonical report.
+- `assess_prose`: optionally run the independent OpenAI-backed engine or the
+  low-confidence local diagnostic.
 - `list_betterprose_profiles`: the installed genre profiles and weights.
 - `assess_with_betterprose`: a reusable MCP prompt for clients that expose
   server prompts.
 
-The tool's default `provider="auto"` uses the OpenAI provider when
-`OPENAI_API_KEY` is available to the server process and otherwise uses the
-low-confidence offline provider. You can request `provider="local"` or
-`provider="openai"` explicitly.
+The default two-tool workflow uses the AI already open in the conversation and
+records `provider="host-assisted"`. Results may differ among host models, so
+the report also records the host model when the client supplies its name.
+
+The optional `assess_prose` tool retains an independent-engine mode. Its
+`provider="auto"` uses OpenAI when `OPENAI_API_KEY` is available to the server
+process and otherwise uses the low-confidence offline provider.
 
 See [docs/mcp.md](docs/mcp.md) for configuration, security boundaries, and
 testing. [AI_USAGE.md](AI_USAGE.md) provides portable instructions for AI

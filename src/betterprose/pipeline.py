@@ -4,7 +4,7 @@ from collections import Counter
 from statistics import mean
 
 from betterprose.document import Document
-from betterprose.models import AssessmentReport, CriterionScore, Rubric
+from betterprose.models import AssessmentDraft, AssessmentReport, CriterionScore, Rubric
 from betterprose.providers.base import AssessmentProvider
 
 
@@ -19,6 +19,31 @@ def assess_document(
     if not document.text.strip():
         raise ValueError("Cannot assess an empty document.")
     draft = provider.assess(document, rubric, audience=audience, purpose=purpose)
+    return build_assessment_report(
+        document,
+        rubric,
+        draft,
+        provider_name=provider.name,
+        model=provider.model,
+        audience=audience,
+        purpose=purpose,
+    )
+
+
+def build_assessment_report(
+    document: Document,
+    rubric: Rubric,
+    draft: AssessmentDraft,
+    *,
+    provider_name: str,
+    model: str | None,
+    audience: str | None = None,
+    purpose: str | None = None,
+    additional_warnings: list[str] | None = None,
+) -> AssessmentReport:
+    """Validate findings and calculate an assessment report in application code."""
+    if not document.text.strip():
+        raise ValueError("Cannot assess an empty document.")
     findings = {finding.criterion_id: finding for finding in draft.findings}
     expected = {criterion.id for criterion in rubric.criteria}
     missing = expected - findings.keys()
@@ -51,8 +76,8 @@ def assess_document(
         if confidence_counts["high"] + confidence_counts["medium"] >= 8
         else "low"
     )
-    warnings = []
-    if provider.name == "local":
+    warnings = list(additional_warnings or [])
+    if provider_name == "local":
         warnings.append(
             "Offline scores are low-confidence diagnostics and must not be treated as grades."
         )
@@ -63,8 +88,8 @@ def assess_document(
         document_name=document.name,
         profile_name=rubric.name,
         profile_version=rubric.version,
-        provider=provider.name,
-        model=provider.model,
+        provider=provider_name,
+        model=model,
         audience=audience,
         purpose=purpose,
         overall_score=overall,
