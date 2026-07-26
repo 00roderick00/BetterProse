@@ -1,0 +1,89 @@
+name: academic_argument
+label: Academic argument
+version: "1.0"
+description: Evidence-backed analytical or argumentative prose.
+criteria:
+  - id: rhetorical_fit
+    label: Rhetorical fit
+    weight: 8
+    question: Does the prose do the right work for its reader, purpose, genre, and situation?
+    rating_4: Purpose, audience, genre, tone, detail, and form reinforce one another.
+    rating_2: Purpose is visible, but audience assumptions or genre choices are uneven.
+    rating_0: The response is absent, off-task, or fundamentally mismatched.
+  - id: motive
+    label: Motive, problem, or stakes
+    weight: 8
+    question: Why does this argument need to exist?
+    rating_4: A consequential problem generates the argument and concrete stakes.
+    rating_2: An interesting topic has generic, weakly integrated, or inflated stakes.
+    rating_0: There is a topic but no meaningful problem, need, or pressure.
+  - id: controlling_idea
+    label: Controlling idea, claim, or tension
+    weight: 10
+    question: What specific, consequential, and qualified idea directs the piece?
+    rating_4: A precise, arguable claim organizes and develops across the whole.
+    rating_2: A broad or predictable claim is visible but inconsistently sustained.
+    rating_0: No controlling direction can reasonably be identified.
+  - id: development
+    label: Development and reasoning
+    weight: 12
+    question: Does the piece earn its conclusions through analysis and warrants?
+    rating_4: Claims, evidence, warrants, implications, and relationships form a convincing chain.
+    rating_2: Meaningful development is mixed with summary, assertion, repetition, or leaps.
+    rating_0: Conclusions are merely announced or do not follow.
+  - id: support
+    label: Support, evidence, and concrete particulars
+    weight: 10
+    question: Is support relevant, sufficient, representative, integrated, and analyzed?
+    rating_4: Traceable evidence and particulars make the argument credible and precise.
+    rating_2: Support is relevant but thin, repetitive, abstract, or weakly integrated.
+    rating_0: Material claims are unsupported, contradicted, fabricated, or distorted.
+  - id: complexity
+    label: Complexity, qualification, and counterpressure
+    weight: 7
+    question: Does the prose acknowledge real difficulty without dissolving into indecision?
+    rating_4: Scope, uncertainty, alternatives, and objections are handled fairly and precisely.
+    rating_2: Complexity is acknowledged but tokenized, over-hedged, or weakly integrated.
+    rating_0: The piece relies on false certainty, caricature, false balance, or contradiction.
+  - id: macrostructure
+    label: Macrostructure and sequence
+    weight: 10
+    question: Does the order of the whole piece help the reader think?
+    rating_4: Sections perform distinct functions in a purposeful, proportionate progression.
+    rating_2: The sequence is understandable but formulaic, arbitrary, or disproportionate.
+    rating_0: No discernible progression supports comprehension.
+  - id: cohesion
+    label: Paragraph and section cohesion
+    weight: 8
+    question: Does each unit have a clear function and move information intelligibly?
+    rating_4: Paragraphs are developed, purposeful, and connected through ideas.
+    rating_2: Several units are overloaded, underdeveloped, mechanical, or disconnected.
+    rating_0: Paragraphing and transitions materially obstruct the logic.
+  - id: sentence_craft
+    label: Sentence clarity, emphasis, and rhythm
+    weight: 10
+    question: Do sentences carry thought accurately and direct attention deliberately?
+    rating_4: Syntax, emphasis, complexity, and rhythm fit the ideas and genre.
+    rating_2: Recurring ambiguity, monotony, choppiness, or overpacking burdens the reader.
+    rating_0: Persistent syntactic confusion materially obstructs comprehension.
+  - id: diction
+    label: Diction, precision, and economy
+    weight: 7
+    question: Are words exact, proportionate, and necessary?
+    rating_4: Diction preserves distinctions and achieves economy without losing nuance.
+    rating_2: Abstraction, inflation, redundancy, cliché, or imprecision recurs.
+    rating_0: Language materially misstates or obscures the ideas.
+  - id: voice
+    label: Voice, ethos, and originality of perception
+    weight: 5
+    question: Is there an accountable intelligence behind the prose?
+    rating_4: Earned confidence, honesty, priorities, and non-interchangeable judgments are visible.
+    rating_2: The prose is competent but generic, inconsistently toned, or decoratively personal.
+    rating_0: False experience, imitation, or borrowed authority replaces accountable judgment.
+  - id: conventions
+    label: Conventions, accessibility, and presentation
+    weight: 5
+    question: Do linguistic and presentational choices help the intended reader use the work?
+    rating_4: Relevant conventions, citation, design, and accessibility are controlled.
+    rating_2: Localized errors or inconsistencies cause repairable friction.
+    rating_0: Presentation or convention failures prevent intended use or recoverable meaning.
