@@ -9,6 +9,28 @@ BetterProse does **not** detect AI authorship. It does not treat punctuation,
 sentence-length variation, unusual vocabulary, or other surface features as
 proof of authorship or writing quality.
 
+## Research foundations
+
+BetterProse is grounded in rhetoric and composition theory, writing instruction
+at Stanford, Princeton, Harvard, Oxford, and Cambridge, professional writing-
+assessment guidance, meta-analyses of rubrics and feedback, and current research
+on automated essay scoring and AI-detector bias.
+
+Its twelve criteria are a transparent synthesis, not a hidden model preference.
+The system separates prose quality, source integrity, authorial process, and
+AI-use compliance; requires exact textual evidence; calculates scores from
+versioned rubric weights; and treats AI as a formative second reader rather than
+an autonomous high-stakes grader.
+
+Read the full 3,300-word [research foundations and design
+rationale](docs/research-foundations.md), including criterion provenance,
+research-to-product traceability, limitations, selected academic sources, and
+the empirical validation program.
+
+BetterProse is **research-grounded and software-validated**, but it does not
+claim psychometric validation for admissions, employment, publication, or
+autonomous grading.
+
 ## What the MVP includes
 
 - `betterprose assess`: score prose with a 12-part, genre-sensitive rubric.
@@ -257,3 +279,4 @@ consequential setting.
 ## License
 
 MIT
+
