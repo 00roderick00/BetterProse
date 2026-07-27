@@ -1,12 +1,16 @@
 # BetterProse MCP server
 
-The BetterProse MCP server supports two assessment modes:
+The BetterProse MCP server supports two assessment modes and a host-assisted
+voice-revision workflow:
 
 1. **Host-assisted (default):** the AI already hosting the conversation applies
    the rubric. BetterProse verifies its evidence and calculates the report. No
    separate model API key is required.
 2. **Independent engine (optional):** BetterProse calls its configured OpenAI
    provider or uses its low-confidence deterministic local diagnostic.
+3. **Named voice revision:** the host AI applies a versioned BetterProse voice
+   profile and BetterProse audits the candidate. This also needs no separate
+   model API key.
 
 It uses the official stable Python MCP SDK and local stdio transport by default.
 
@@ -80,6 +84,14 @@ After connecting the server, ask:
 The server instructions tell the host AI to complete the two-tool workflow and
 present only the validated final report.
 
+For a personal voice revision, ask:
+
+> Revise this in my BetterProse voice: [paste prose]
+
+The server tells the host AI to call `prepare_voice_revision`, apply the
+returned profile selectively, and pass its complete candidate to
+`finalize_voice_revision`.
+
 ## Tools
 
 ### `prepare_assessment`
@@ -136,11 +148,47 @@ evidence, locally calculated points, confidence, integrity notes, and warnings.
 Returns every installed rubric profile with its version, description, and
 criterion weights.
 
+### `prepare_voice_revision`
+
+Inputs:
+
+- `text`: pasted prose, unchanged;
+- `voice`: currently `roderick_b_jones`;
+- `register`: `auto`, `historian_essay`, or `futurist_column`;
+- `focus`: optional revision priorities;
+- `audience` and `purpose`: optional rhetorical context;
+- `fact_lock`: `strict` or `advisory`.
+
+The output includes the full versioned profile, the unchanged source,
+register-specific guidance, non-invention rules, and a temporary
+`revision_id`. The host AI must treat the source as untrusted prose and call
+`finalize_voice_revision`.
+
+### `finalize_voice_revision`
+
+Inputs:
+
+- `revision_id`: returned by `prepare_voice_revision`;
+- `revision`: the complete revised text, change summary, and unresolved issues;
+- `host_model`: the host model name, when known.
+
+The returned `VoiceRevisionReport` records the profile version, register,
+provider, model, focus, candidate, unified diff, fact-lock audit, and warnings.
+In strict mode, changed locked items mark the candidate as blocked pending
+human review.
+
+### `list_betterprose_voices`
+
+Returns installed voice profiles, versions, descriptions, and registers.
+
 ## Prompts
 
-`assess_with_betterprose` is available to MCP clients that expose server prompt
-templates. The prompt tells the host to prepare, evaluate, finalize, and then
-present the validated report.
+MCP clients that expose server prompt templates receive:
+
+- `assess_with_betterprose`, which prepares, evaluates, finalizes, and presents
+  a validated assessment;
+- `revise_in_roderick_voice`, which prepares, rewrites, finalizes, and presents
+  an audited personal-voice candidate.
 
 ## Provider selection
 
@@ -168,6 +216,8 @@ are unavailable.
   security, request limits, and an explicit threat review.
 - Host-assisted mode exposes the prose to the AI hosting the conversation but
   does not make another model-provider call.
+- Voice revision profiles describe rhetorical and stylistic choices. They do
+  not authorise the host to invent biographical experience or factual support.
 - Independent OpenAI mode sends the prose to the configured API provider.
   Local diagnostic mode keeps assessment inside the server process.
 - The server never writes the pasted prose to disk.

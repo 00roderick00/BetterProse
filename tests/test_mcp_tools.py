@@ -4,11 +4,14 @@ import betterprose.mcp_tools as mcp_tools
 from betterprose.mcp_tools import (
     assess_pasted_prose,
     finalize_host_assessment,
+    finalize_host_voice_revision,
     list_profiles,
+    list_voices,
     prepare_host_assessment,
+    prepare_host_voice_revision,
     resolve_provider,
 )
-from betterprose.models import AssessmentDraft, CriterionFinding, Evidence
+from betterprose.models import AssessmentDraft, CriterionFinding, Evidence, RevisionDraft
 from betterprose.rubric import CORE_CRITERION_IDS
 
 HOST_TEXT = """
@@ -181,3 +184,59 @@ def test_profile_catalog_is_complete() -> None:
         "narrative_nonfiction",
     }
     assert all(sum(item.weight for item in profile.criteria) == 100 for profile in catalog.profiles)
+
+
+def test_host_assisted_voice_revision_needs_no_api_key(monkeypatch) -> None:
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    source = "In 2024, the programme changed direction."
+    brief = prepare_host_voice_revision(
+        source,
+        register="historian_essay",
+        focus=["voice", "clarity"],
+        audience="general readers",
+    )
+    assert brief.voice_profile.name == "roderick_b_jones"
+    assert brief.voice_profile.version == "2"
+    assert brief.selected_register == "historian_essay"
+    assert brief.source_text == source
+    assert "untrusted prose" in " ".join(brief.instructions)
+    assert "Never invent personal experience" in brief.voice_instructions
+
+    report = finalize_host_voice_revision(
+        brief.revision_id,
+        RevisionDraft(
+            revised_text="In 2024, the programme altered its direction.",
+            change_summary=["Tightened the sentence while preserving its claim."],
+            unresolved_issues=[],
+        ),
+        host_model="example-host-model",
+    )
+    assert report.provider == "host-assisted"
+    assert report.voice_profile == "roderick_b_jones"
+    assert report.voice_register == "historian_essay"
+    assert report.audit.approved
+    assert report.model == "example-host-model"
+
+
+def test_strict_host_voice_revision_flags_changed_locked_item() -> None:
+    brief = prepare_host_voice_revision("Costs rose by 12%.")
+    report = finalize_host_voice_revision(
+        brief.revision_id,
+        RevisionDraft(
+            revised_text="Costs rose by 21%.",
+            change_summary=["Changed the sentence."],
+        ),
+    )
+    assert not report.audit.approved
+    assert any("blocked" in warning for warning in report.warnings)
+
+
+def test_voice_catalog_lists_registers() -> None:
+    catalog = list_voices()
+    assert [voice.name for voice in catalog.voices] == ["roderick_b_jones"]
+    assert catalog.voices[0].version == "2"
+    assert catalog.voices[0].registers == [
+        "auto",
+        "historian_essay",
+        "futurist_column",
+    ]

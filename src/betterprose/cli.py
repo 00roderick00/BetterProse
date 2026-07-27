@@ -18,6 +18,7 @@ from betterprose.reporting import (
 )
 from betterprose.revision import revise_document
 from betterprose.rubric import load_rubric, profile_names
+from betterprose.voice import load_voice_profile, register_names, resolve_register, voice_names
 
 app = typer.Typer(
     name="betterprose",
@@ -108,6 +109,8 @@ def revise(
     focus: Annotated[str, typer.Option(help="Comma-separated revision dimensions.")] = "clarity",
     audience: Annotated[str | None, typer.Option(help="Intended reader.")] = None,
     purpose: Annotated[str | None, typer.Option(help="Intended effect.")] = None,
+    voice: Annotated[str | None, typer.Option(help="Named voice profile.")] = None,
+    register: Annotated[str, typer.Option(help="Voice register or auto.")] = "auto",
     fact_lock: Annotated[str, typer.Option(help="strict or advisory.")] = "strict",
     output_dir: Annotated[Path | None, typer.Option(help="Revision directory.")] = None,
 ) -> None:
@@ -116,6 +119,11 @@ def revise(
         raise typer.BadParameter("Fact lock must be 'strict' or 'advisory'.")
     focus_items = [item.strip() for item in focus.split(",") if item.strip()]
     try:
+        voice_profile = load_voice_profile(voice) if voice else None
+        if voice_profile is None and register != "auto":
+            raise ValueError("--register requires --voice.")
+        if voice_profile is not None:
+            resolve_register(voice_profile, register)
         target = output_dir or _default_output("revisions", path)
         result = revise_document(
             path,
@@ -126,6 +134,8 @@ def revise(
             audience=audience,
             purpose=purpose,
             fact_lock_mode=fact_lock,
+            voice_profile=voice_profile,
+            voice_register=register if voice_profile else None,
         )
         written = write_revision(result, target)
     except (ValueError, RuntimeError) as exc:
@@ -175,3 +185,13 @@ def profiles() -> None:
         typer.echo(f"{rubric.name} (v{rubric.version}) — {rubric.label}")
         for criterion in rubric.criteria:
             typer.echo(f"  {criterion.id}: {criterion.weight:g}")
+
+
+@app.command()
+def voices() -> None:
+    """List installed voice profiles and their selectable registers."""
+    for name in voice_names():
+        voice = load_voice_profile(name)
+        typer.echo(f"{voice.name} (v{voice.version}) — {voice.label}")
+        typer.echo(f"  registers: {', '.join(register_names(voice))}")
+        typer.echo(f"  {voice.description}")

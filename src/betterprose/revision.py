@@ -6,7 +6,7 @@ from collections import Counter
 from pathlib import Path
 
 from betterprose.document import Document
-from betterprose.models import FactLockAudit, LockedItem, RevisionResult
+from betterprose.models import FactLockAudit, LockedItem, RevisionResult, VoiceProfile
 from betterprose.providers.base import AssessmentProvider
 
 LOCK_PATTERNS: dict[str, re.Pattern[str]] = {
@@ -71,12 +71,16 @@ def revise_document(
     audience: str | None,
     purpose: str | None,
     fact_lock_mode: str,
+    voice_profile: VoiceProfile | None = None,
+    voice_register: str | None = None,
 ) -> RevisionResult:
     draft = provider.revise(
         document,
         focus=focus,
         audience=audience,
         purpose=purpose,
+        voice_profile=voice_profile,
+        voice_register=voice_register,
     )
     output_dir.mkdir(parents=True, exist_ok=True)
     candidate_path = output_dir / f"{source_path.stem}.candidate{source_path.suffix}"
@@ -95,6 +99,9 @@ def revise_document(
         candidate_path=str(candidate_path),
         provider=provider.name,
         focus=focus,
+        voice_profile=voice_profile.name if voice_profile else None,
+        voice_version=voice_profile.version if voice_profile else None,
+        voice_register=voice_register if voice_profile else None,
         change_summary=draft.change_summary,
         unresolved_issues=draft.unresolved_issues,
         audit=audit,

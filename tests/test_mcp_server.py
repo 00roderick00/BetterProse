@@ -58,8 +58,11 @@ async def test_server_publishes_canonical_tools(client_session: ClientSession) -
     assert {tool.name for tool in tools.tools} == {
         "assess_prose",
         "finalize_assessment",
+        "finalize_voice_revision",
         "list_betterprose_profiles",
+        "list_betterprose_voices",
         "prepare_assessment",
+        "prepare_voice_revision",
     }
     prepare = next(tool for tool in tools.tools if tool.name == "prepare_assessment")
     assert "assess this with BetterProse" in (prepare.description or "")
@@ -142,7 +145,48 @@ async def test_server_rejects_fabricated_host_evidence(
 @pytest.mark.anyio
 async def test_server_publishes_assessment_prompt(client_session: ClientSession) -> None:
     prompts = await client_session.list_prompts()
-    assert [prompt.name for prompt in prompts.prompts] == ["assess_with_betterprose"]
+    assert [prompt.name for prompt in prompts.prompts] == [
+        "assess_with_betterprose",
+        "revise_in_roderick_voice",
+    ]
+
+
+@pytest.mark.anyio
+async def test_server_completes_host_assisted_voice_revision(
+    client_session: ClientSession,
+) -> None:
+    source = "In 2024, the programme changed direction."
+    prepared = await client_session.call_tool(
+        "prepare_voice_revision",
+        {
+            "text": source,
+            "voice": "roderick_b_jones",
+            "register": "historian_essay",
+            "focus": ["voice", "clarity"],
+        },
+    )
+    assert not prepared.isError
+    assert prepared.structuredContent is not None
+    assert prepared.structuredContent["source_text"] == source
+    assert prepared.structuredContent["voice_profile"]["version"] == "2"
+
+    finalized = await client_session.call_tool(
+        "finalize_voice_revision",
+        {
+            "revision_id": prepared.structuredContent["revision_id"],
+            "revision": {
+                "revised_text": "In 2024, the programme altered its direction.",
+                "change_summary": ["Tightened the sentence without changing its claim."],
+                "unresolved_issues": [],
+            },
+            "host_model": "test-host",
+        },
+    )
+    assert not finalized.isError
+    assert finalized.structuredContent is not None
+    assert finalized.structuredContent["voice_profile"] == "roderick_b_jones"
+    assert finalized.structuredContent["voice_register"] == "historian_essay"
+    assert finalized.structuredContent["audit"]["approved"]
 
 
 @pytest.mark.anyio

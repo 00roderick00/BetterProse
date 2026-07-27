@@ -96,6 +96,47 @@ class Rubric(BaseModel):
     criteria: list[RubricCriterion]
 
 
+class VoiceRegister(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    id: str
+    label: str
+    use_when: str
+    instructions: list[str]
+
+
+class VoiceVocabulary(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    prefer: list[str]
+    avoid: list[str]
+
+
+class VoiceCalibrationExample(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    not_voice: str
+    in_voice: str
+
+
+class VoiceProfile(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    name: str
+    label: str
+    version: str
+    description: str
+    provenance: list[str]
+    persona: str
+    registers: list[VoiceRegister]
+    shared_principles: list[str]
+    mechanics: list[str]
+    spelling: list[str]
+    vocabulary: VoiceVocabulary
+    safeguards: list[str]
+    calibration_examples: list[VoiceCalibrationExample]
+
+
 class RevisionDraft(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
@@ -122,10 +163,31 @@ class RevisionResult(BaseModel):
     candidate_path: str
     provider: str
     focus: list[str]
+    voice_profile: str | None = None
+    voice_version: str | None = None
+    voice_register: str | None = None
     change_summary: list[str]
     unresolved_issues: list[str]
     audit: FactLockAudit
     diff: str
+
+
+class VoiceRevisionReport(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    schema_version: str = "1.0"
+    voice_profile: str
+    voice_version: str
+    voice_register: str
+    provider: str
+    model: str | None = None
+    focus: list[str]
+    revised_text: str
+    change_summary: list[str]
+    unresolved_issues: list[str]
+    audit: FactLockAudit
+    diff: str
+    warnings: list[str] = Field(default_factory=list)
 
 
 class DocumentStats(BaseModel):

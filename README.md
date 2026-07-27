@@ -40,10 +40,13 @@ autonomous grading.
   audit; the original is never overwritten.
 - `betterprose compare`: compare drafts with an auditable unified diff.
 - `betterprose profiles`: inspect the installed rubric profiles.
+- `betterprose voices`: inspect named, versioned voice profiles and registers.
 - `betterprose-mcp`: expose BetterProse as structured tools to MCP-compatible
   AI assistants.
 - Markdown, HTML, and JSON assessment reports.
 - Academic argument, professional prose, and narrative nonfiction profiles.
+- A versioned Roderick B Jones voice profile with historian's-essay and
+  futurist-column registers.
 - An offline provider for private, deterministic diagnostics.
 - An optional OpenAI provider using the Responses API and Structured Outputs.
 
@@ -143,8 +146,15 @@ The server publishes:
 - `assess_prose`: optionally run the independent OpenAI-backed engine or the
   low-confidence local diagnostic.
 - `list_betterprose_profiles`: the installed genre profiles and weights.
+- `prepare_voice_revision`: return a named voice profile, source text,
+  register, and preservation constraints for the host AI.
+- `finalize_voice_revision`: audit the host AI's candidate under fact lock and
+  return its diff, provenance, and warnings.
+- `list_betterprose_voices`: list installed voice profiles and registers.
 - `assess_with_betterprose`: a reusable MCP prompt for clients that expose
   server prompts.
+- `revise_in_roderick_voice`: a reusable MCP prompt for an audited personal
+  voice revision.
 
 The default two-tool workflow uses the AI already open in the conversation and
 records `provider="host-assisted"`. Results may differ among host models, so
@@ -207,6 +217,35 @@ silently overwrites the source.
 
 The offline provider performs conservative mechanical cleanup only. It will
 not pretend that local statistics can perform developmental editing.
+
+## Revise in Roderick B Jones's voice
+
+BetterProse includes a versioned personal voice profile derived from materials
+identified by Roderick B Jones. It separates a long-form historian's essay
+register from a shorter futurist column register while preserving shared
+features such as calibrated confidence, historical explanation, operational
+framing, and a forward-leaning close.
+
+```bash
+betterprose revise draft.md \
+  --provider openai \
+  --voice roderick_b_jones \
+  --register historian_essay \
+  --focus voice,structure,clarity \
+  --fact-lock strict
+```
+
+In an MCP-connected AI, paste the text and say:
+
+> Revise this in my BetterProse voice.
+
+The host AI applies the profile, then BetterProse validates the candidate's
+locked claim-surface items. The profile is a revision constraint, not a quality
+score, and it never authorises invented biography, professional experience, or
+first-person observation.
+
+See [docs/voice-profiles.md](docs/voice-profiles.md) for the two registers,
+commands, no-extra-key MCP workflow, safeguards, and versioning policy.
 
 ## Compare drafts
 
@@ -279,4 +318,3 @@ consequential setting.
 ## License
 
 MIT
-

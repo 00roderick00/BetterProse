@@ -4,7 +4,14 @@ import re
 import statistics
 
 from betterprose.document import WORD, Document
-from betterprose.models import AssessmentDraft, CriterionFinding, Evidence, RevisionDraft, Rubric
+from betterprose.models import (
+    AssessmentDraft,
+    CriterionFinding,
+    Evidence,
+    RevisionDraft,
+    Rubric,
+    VoiceProfile,
+)
 
 SIGNALS: dict[str, tuple[str, ...]] = {
     "motive": ("problem", "risk", "need", "because", "although", "however", "?"),
@@ -206,12 +213,23 @@ class LocalProvider:
         focus: list[str],
         audience: str | None,
         purpose: str | None,
+        voice_profile: VoiceProfile | None,
+        voice_register: str | None,
     ) -> RevisionDraft:
         revised = re.sub(r"[ \t]+", " ", document.text)
         revised = re.sub(r" +\n", "\n", revised)
         revised = re.sub(r"\b(\w+)(\s+\1\b)+", r"\1", revised, flags=re.IGNORECASE)
         revised = revised.strip() + "\n"
         changed = revised != document.text
+        unresolved = [
+            "Offline mode does not perform substantive rewriting.",
+            "Use coaching or a model-assisted provider for developmental revision.",
+        ]
+        if voice_profile is not None:
+            unresolved.append(
+                f"Offline mode did not apply the {voice_profile.label} voice profile "
+                f"or its {voice_register or 'auto'} register."
+            )
         return RevisionDraft(
             revised_text=revised,
             change_summary=(
@@ -219,8 +237,5 @@ class LocalProvider:
                 if changed
                 else ["No safe mechanical cleanup was needed."]
             ),
-            unresolved_issues=[
-                "Offline mode does not perform substantive rewriting.",
-                "Use coaching or a model-assisted provider for developmental revision.",
-            ],
+            unresolved_issues=unresolved,
         )

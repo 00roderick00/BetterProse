@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Protocol
 
 from betterprose.document import Document
-from betterprose.models import AssessmentDraft, RevisionDraft, Rubric
+from betterprose.models import AssessmentDraft, RevisionDraft, Rubric, VoiceProfile
 
 
 class AssessmentProvider(Protocol):
@@ -26,4 +26,6 @@ class AssessmentProvider(Protocol):
         focus: list[str],
         audience: str | None,
         purpose: str | None,
+        voice_profile: VoiceProfile | None,
+        voice_register: str | None,
     ) -> RevisionDraft: ...

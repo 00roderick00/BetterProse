@@ -4,7 +4,8 @@ import os
 from importlib.resources import files
 
 from betterprose.document import Document
-from betterprose.models import AssessmentDraft, RevisionDraft, Rubric
+from betterprose.models import AssessmentDraft, RevisionDraft, Rubric, VoiceProfile
+from betterprose.voice import render_voice_instructions
 
 
 class OpenAIProvider:
@@ -68,7 +69,17 @@ class OpenAIProvider:
         focus: list[str],
         audience: str | None,
         purpose: str | None,
+        voice_profile: VoiceProfile | None,
+        voice_register: str | None,
     ) -> RevisionDraft:
+        voice_text = (
+            render_voice_instructions(voice_profile, voice_register or "auto")
+            if voice_profile is not None
+            else (
+                "No named voice profile was selected. Preserve the defensible voice "
+                "already present in the source."
+            )
+        )
         response = self._client.responses.parse(
             model=self.model,
             reasoning={"effort": "medium"},
@@ -80,6 +91,7 @@ class OpenAIProvider:
                         f"Focus: {', '.join(focus) or 'clarity'}\n"
                         f"Audience: {audience or 'not supplied'}\n"
                         f"Purpose: {purpose or 'not supplied'}\n\n"
+                        f"Voice guidance:\n{voice_text}\n\n"
                         f"Source text:\n{document.text}"
                     ),
                 },
