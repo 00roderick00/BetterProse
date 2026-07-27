@@ -1,0 +1,51 @@
+[build-system]
+requires = ["hatchling>=1.25"]
+build-backend = "hatchling.build"
+
+[project]
+name = "betterprose"
+version = "0.1.0"
+description = "Transparent, rubric-driven prose assessment and controlled revision"
+readme = "README.md"
+requires-python = ">=3.11"
+license = {file = "LICENSE"}
+authors = [{name = "Roderick Jones"}]
+dependencies = [
+  "mcp>=1.27,<2",
+  "pydantic>=2.7,<3",
+  "PyYAML>=6.0,<7",
+  "typer>=0.12,<1",
+]
+
+[project.optional-dependencies]
+openai = ["openai>=2.3,<3"]
+dev = [
+  "pytest>=8.2,<9",
+  "ruff>=0.9,<1",
+]
+
+[project.scripts]
+betterprose = "betterprose.cli:app"
+betterprose-mcp = "betterprose.mcp_server:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/betterprose"]
+
+[tool.hatch.build]
+include = [
+  "src/betterprose/**/*.py",
+  "src/betterprose/prompts/*.md",
+  "src/betterprose/rubrics/*.yaml",
+  "src/betterprose/voices/*.yaml",
+]
+
+[tool.pytest.ini_options]
+addopts = "-q"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]

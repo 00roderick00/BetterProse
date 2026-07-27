@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "betterprose": {
+      "command": "uvx",
+      "args": [
+        "--from",
+        "git+https://github.com/00roderick00/BetterProse.git@agent/prosebench-mvp",
+        "betterprose-mcp"
+      ]
+    }
+  }
+}
